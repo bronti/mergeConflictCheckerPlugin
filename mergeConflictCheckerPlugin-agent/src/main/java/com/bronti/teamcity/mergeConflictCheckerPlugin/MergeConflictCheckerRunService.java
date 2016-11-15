@@ -45,7 +45,7 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
         Map<String, String> params = getRunnerParameters();
         String myOption = params.get(MergeConflictCheckerConstants.MY_OPTION_KEY);
 //        MergeConflictCheckerMyOption rlOption = MergeConflictCheckerMyOption.valueOf(myOption);
-        return "echo 'Hi, beauty! Option is " + myOption + ".";
+        return "echo 'Hi, beauty! Option is " + myOption + ".'";
     }
 
     private String createExecutable(String script) throws RunBuildException {
