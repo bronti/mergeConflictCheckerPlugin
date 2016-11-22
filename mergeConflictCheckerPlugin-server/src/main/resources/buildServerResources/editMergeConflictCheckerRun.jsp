@@ -17,7 +17,16 @@
   </td>
 </tr>
 
+<tr id="mcc_branches">
+  <th><label for="${bean.branches}">Branches:</label></th>
+  <td>
+     <props:textProperty name="${bean.branches}" className="longField"/>
+     <span class="smallNote">Branches to check with.</span>
+  </td>
+</tr>
+
 <script type="text/javascript">
   BS.Util.show($('mcc_my_option'));
+  BS.Util.show($('mcc_branches'));
   BS.MultilineProperties.updateVisible();
 </script>

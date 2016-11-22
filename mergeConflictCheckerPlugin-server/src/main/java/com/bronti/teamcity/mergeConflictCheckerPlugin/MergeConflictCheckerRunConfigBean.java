@@ -14,6 +14,10 @@ public class MergeConflictCheckerRunConfigBean {
         return MergeConflictCheckerConstants.MY_OPTION_KEY;
     }
 
+    public String getBranches() {
+        return MergeConflictCheckerConstants.BRANCHES;
+    }
+
     public Collection<MergeConflictCheckerMyOption> getMyOptionValues() {
         return Arrays.asList(MergeConflictCheckerMyOption.values());
     }

@@ -65,6 +65,7 @@ public class MergeConflictCheckerRunTYpe extends RunType {
     public Map<String, String> getDefaultRunnerProperties() {
         Map<String, String> defaults = new HashMap<String, String>();
         defaults.put(MergeConflictCheckerConstants.MY_OPTION_KEY, MergeConflictCheckerMyOption.SECOND.getValue());
+//        defaults.put(MergeConflictCheckerConstants.BRANCHES, "");
         return defaults;
     }
 
@@ -81,9 +82,12 @@ public class MergeConflictCheckerRunTYpe extends RunType {
 
     @NotNull
     @Override
-    public String describeParameters(Map<String, String> params) {
+    public String describeParameters(@NotNull Map<String, String> params) {
         String value = params.get(MergeConflictCheckerConstants.MY_OPTION_KEY);
-        return value == null ? "something went wrong (my option is null)" : "my option: " + value;
+        String result = value == null ? "something went wrong (my option is null)\n" : "my option: " + value + "\n";
+        String branches = params.get(MergeConflictCheckerConstants.BRANCHES);
+        result += "branches: " + (branches == null ? "null" : branches) + "\n";
+        return result;
     }
 
 

@@ -1,6 +1,8 @@
 package com.bronti.teamcity.mergeConflictCheckerPlugin;
 
 import jetbrains.buildServer.RunBuildException;
+import jetbrains.buildServer.agent.BuildParametersMap;
+import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
@@ -10,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,42 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
         Map<String, String> params = getRunnerParameters();
         String myOption = params.get(MergeConflictCheckerConstants.MY_OPTION_KEY);
 //        MergeConflictCheckerMyOption rlOption = MergeConflictCheckerMyOption.valueOf(myOption);
-        return "echo 'Hi, beauty! Option is " + myOption + ".'";
+        String allBranches = params.get(MergeConflictCheckerConstants.BRANCHES);
+        String result = "#!/bin/bash\n";
+        result += "echo 'My option is " + myOption + ".'\n";
+        result += "echo 'Branches are " + allBranches + ".'\n";
+
+        BuildRunnerContext context = getRunnerContext();
+        Map<String, String> configParams = context.getConfigParameters();
+        String currentBranch = configParams.get("vcsroot.branch");
+        result += "echo 'Current branch is " + currentBranch + ".'\n";
+
+        String[] branches = allBranches.split("\\s+");
+        for (String branch : branches)
+        {
+            if (("refs/heads/" + branch).equals(currentBranch)){
+                continue;
+            }
+            // ??
+        }
+
+//        BuildRunnerContext context = getRunnerContext();
+//        BuildParametersMap parametersMap = context.getBuildParameters();
+//        Map<String, String> allParams = parametersMap.getAllParameters();
+//        String keys = String.join(" ", allParams.keySet());
+//        result += "echo 'Build params are:'\
+//        result += "echo '" + keys + "'\n";n";
+//
+//        Map<String, String> configParams = context.getConfigParameters();
+//        keys = String.join(" ", configParams.keySet());
+//        result += "echo 'Config params are:'\n";
+//        result += "echo '" + keys + "'\n";
+//
+//        Map<String, String> runnerParams = context.getRunnerParameters();
+//        keys = String.join(" ", runnerParams.keySet());
+//        result += "echo 'Runner params are:'\n";
+//        result += "echo '" + keys + "'\n";
+        return result;
     }
 
     private String createExecutable(String script) throws RunBuildException {

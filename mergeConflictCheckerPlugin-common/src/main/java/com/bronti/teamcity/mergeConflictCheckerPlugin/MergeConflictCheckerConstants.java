@@ -6,4 +6,6 @@ public class MergeConflictCheckerConstants {
 
     public static final String MY_OPTION_KEY = "my_option_key";
 
+    public static final String BRANCHES = "branches";
+
 }

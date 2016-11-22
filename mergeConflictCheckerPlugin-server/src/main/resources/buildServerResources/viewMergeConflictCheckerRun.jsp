@@ -9,4 +9,6 @@
 <div class="parameter">
   My option (view):
   <props:displayValue name="${bean.getMyOption}" />
+  Branches:
+  <props:displayValue name="${bean.getBranches}" />
 </div>
