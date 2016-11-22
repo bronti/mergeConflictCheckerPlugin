@@ -64,7 +64,10 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
             if (("refs/heads/" + branch).equals(currentBranch)){
                 continue;
             }
-            // ??
+            result += "git fetch origin\n";
+            result += "git merge origin/" + branch + "\n";
+            result += "git merge --abort\n";
+            result += "git reset --hard HEAD\n";
         }
 
 //        BuildRunnerContext context = getRunnerContext();
