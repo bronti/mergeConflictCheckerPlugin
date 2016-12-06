@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Created by bronti on 15.11.16.
@@ -66,6 +65,30 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
         return "echo '" + msg + "'\n";
     }
 
+    private String fetchRemote(Git git, String name, URIish uri) throws GitAPIException, RunBuildException {
+        RemoteAddCommand addOrigin = git.remoteAdd();
+        addOrigin.setName(name);
+        addOrigin.setUri(uri);
+        addOrigin.call();
+
+        BuildRunnerContext context = getRunnerContext();
+        Map<String, String> configParams = context.getConfigParameters();
+        String user = configParams.get("vcsroot.username");
+
+        try {
+            // one remote
+            git.fetch()
+                    .setRemote(name)
+//                   .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(user, "<password>"))
+                    .call();
+            return echo("Successfully fetched " + name);
+        } catch (TransportException ex)
+        {
+            throw new RunBuildException( ex.getMessage(), ex.getCause());
+        }
+    }
+
     private String createScript() throws RunBuildException {
 
         Map<String, String> params = getRunnerParameters();
@@ -75,58 +98,28 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
 
         String result = "#!/bin/bash\n";
 
-//        result += "echo 'My option is " + myOption + ".'\n";
-//        result += "echo 'Branches are " + allBranches + ".'\n";
-
         BuildRunnerContext context = getRunnerContext();
         Map<String, String> configParams = context.getConfigParameters();
         String currentBranch = configParams.get("vcsroot.branch");
         String fetchUrl = configParams.get("vcsroot.url");
         String user = configParams.get("vcsroot.username");
-        // todo: do something!
+
         result += echo("Current branch is " + currentBranch);
 
         String[] branches = allBranches.split("\\s+");
 
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File coDir = getCheckoutDirectory();
-        try (Repository repository = builder.setGitDir(coDir).readEnvironment().findGitDir().build();
+        File repoDir = new File(coDir.getPath() + "/.git");
+
+        try (Repository repository = builder.setGitDir(repoDir).readEnvironment().findGitDir().build();
              Git git = new Git(repository)) {
 
-            Config storedConfig = repository.getConfig();
-            result += echo(storedConfig.toText());
+            result += fetchRemote(git, "origin", new URIish(fetchUrl));
 
-            RemoteAddCommand addOrigin = git.remoteAdd();
-            addOrigin.setName("origin");
-            addOrigin.setUri(new URIish(fetchUrl));
-            addOrigin.call();
-
-            storedConfig = repository.getConfig();
-            result += echo(storedConfig.toText());
-            Set<String> remotes = storedConfig.getSubsections("remote");
-            for (String remoteName : remotes) {
-                String url = storedConfig.getString("remote", remoteName, "url");
-                result += echo("Remote: " + remoteName + " " + url);
-            }
-            if (remotes.size() == 0)
-            {
-                throw new RunBuildException("Can not find remote repo.");
-            }
-
-            try {
-                // one remote
-                git.fetch()
-                   .setRemote("origin")
-                   .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
-                   .call();
-                result += echo("Fetch successful");
-            } catch (TransportException ex)
-            {
-                result += echo("Cannot fetch: " + ex.getMessage() + "\n" + ex.getCause());
-                throw new RunBuildException( ex.getMessage(), ex.getCause());
-            }
-
-            List<Ref> brchs = git.branchList().call();
+            List<Ref> brchs = git.branchList()
+                                 .setListMode(ListBranchCommand.ListMode.ALL)
+                                 .call();
             for (Ref br : brchs) {
                 result += echo(br.getName());
             }
