@@ -61,41 +61,6 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
                 args);
     }
 
-    private static String echo(String msg)
-    {
-        return "echo '" + msg + "'\n";
-    }
-
-    private String fetchRemote(Git git, String name, URIish uri) throws GitAPIException, RunBuildException {
-        RemoteAddCommand addOrigin = git.remoteAdd();
-        addOrigin.setName(name);
-        addOrigin.setUri(uri);
-        addOrigin.call();
-
-        BuildRunnerContext context = getRunnerContext();
-        Map<String, String> configParams = context.getConfigParameters();
-        String user = configParams.get("vcsroot.username");
-
-        try {
-            // one remote
-            RefSpec refSpec = new RefSpec();
-            refSpec = refSpec.setForceUpdate(true);
-            // all branches
-            refSpec = refSpec.setSourceDestination("refs/heads/*", "refs/remotes/" + name + "/*");
-
-            git.fetch()
-                    .setRemote(name)
-//                   .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(user, "12345678"))
-                    .setRefSpecs(refSpec)
-                    .call();
-            return echo("Successfully fetched " + name);
-        } catch (TransportException ex)
-        {
-            throw new RunBuildException( ex.getMessage(), ex.getCause());
-        }
-    }
-
     private String createScript() throws RunBuildException {
 
         Map<String, String> params = getRunnerParameters();
@@ -103,72 +68,29 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
 //        MergeConflictCheckerMyOption rlOption = MergeConflictCheckerMyOption.valueOf(myOption);
         String allBranches = params.get(MergeConflictCheckerConstants.BRANCHES);
 
-        String result = "#!/bin/bash\n";
-
         BuildRunnerContext context = getRunnerContext();
         Map<String, String> configParams = context.getConfigParameters();
-        String currentBranch = configParams.get("vcsroot.branch");
-        String fetchUrl = configParams.get("vcsroot.url");
         String user = configParams.get("vcsroot.username");
+        UsernamePasswordCredentialsProvider credentials =
+                new UsernamePasswordCredentialsProvider(user, "12345678");
 
-        result += echo("Current branch is " + currentBranch);
+        String currBranch = configParams.get("vcsroot.branch");
+        String fetchUrl = configParams.get("vcsroot.url");
 
-        String[] branches = allBranches.split("\\s+");
+        try {
+            URIish uri = new URIish(fetchUrl);
 
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        File coDir = getCheckoutDirectory();
-        File repoDir = new File(coDir.getPath() + "/.git");
+            File coDir = getCheckoutDirectory();
+            File repoDir = new File(coDir.getPath() + "/.git");
 
-        try (Repository repository = builder.setGitDir(repoDir).readEnvironment().findGitDir().build();
-             Git git = new Git(repository)) {
-
-            result += fetchRemote(git, "origin", new URIish(fetchUrl));
-
-            List<Ref> brchs = git.branchList()
-                                 .setListMode(ListBranchCommand.ListMode.ALL)
-                                 .call();
-            for (Ref br : brchs) {
-                result += echo(br.getName());
-            }
-
-//            for (String branch : branches) {
-//                if (("refs/heads/" + branch).equals(currentBranch)) {
-//                    continue;
-//                }
-//                MergeCommand mgCmd = git.merge();
-
-//                ObjectId commitId = repository.resolve("refs/remotes/origin/" + branch);
-//                ObjectId commitId = repository.resolve("origin/" + branch);
-//                mgCmd.include(commitId);
-//                MergeResult res = mgCmd.call();
-//                if (res.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-////                    throw new RunBuildException("Merge conflict.");
-//                    result += "echo 'Merge with branch " + branch + "is failed'\n";
-//                } else {
-//                    result += "echo 'Merge with branch " + branch + "is successful'\n";
-//                }
-//
-//                repository.writeMergeCommitMsg(null);
-//                repository.writeMergeHeads(null);
-//
-//                Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
-
-                // mind http://stackoverflow.com/questions/29807016/abort-merge-using-jgit
-
-    //            result += "git merge origin/" + branch + "\n";
-    //            result += "git merge --abort\n";
-    //            result += "git reset --hard HEAD\n";
-//            }
+            MergeConflictChecker checker =
+                    new MergeConflictChecker(repoDir, currBranch, allBranches, uri, credentials);
+            checker.check();
+            return checker.getFeedback();
         }
-        catch (TransportException ex) {
-//            throw new RunBuildException(ex.getMessage(), ex.getCause());
-            result += ex.getMessage() + "\n" + ex.getCause();
-        }
-        catch(IOException | GitAPIException | URISyntaxException ex) {
+        catch (URISyntaxException | IOException |GitAPIException ex) {
             throw new RunBuildException(ex.getMessage(), ex.getCause());
         }
-
-        return result;
     }
 
     private String createExecutable(String script) throws RunBuildException {
