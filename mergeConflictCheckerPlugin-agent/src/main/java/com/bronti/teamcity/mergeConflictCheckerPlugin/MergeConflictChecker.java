@@ -2,11 +2,10 @@ package com.bronti.teamcity.mergeConflictCheckerPlugin;
 
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.BuildRunnerContext;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
@@ -29,10 +28,9 @@ public class MergeConflictChecker {
     private StringBuilder script = new StringBuilder(100);
 
     private final UsernamePasswordCredentialsProvider creds;
-    private final String[] allBranches;
+    private final String[] toCheckBranches;
     private final String currentBranch;
     private final URIish fetchUri;
-    private final File repoDirectory;
     private final String originName = "origin";
 
     private Repository repository;
@@ -45,13 +43,12 @@ public class MergeConflictChecker {
                          UsernamePasswordCredentialsProvider creds_) throws IOException, RunBuildException {
         script.append("#!/bin/bash\n\n");
         creds = creds_;
-        allBranches = branches.split("\\s+");
+        toCheckBranches = branches.split("\\s+");
         fetchUri = uri_;
         currentBranch = branch;
-        repoDirectory = repoDir;
 
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        repository = builder.setGitDir(repoDirectory).readEnvironment().findGitDir().build();
+        repository = builder.setGitDir(repoDir).readEnvironment().findGitDir().build();
         git = new Git(repository);
     }
 
@@ -62,7 +59,7 @@ public class MergeConflictChecker {
         script.append("'\n");
     }
 
-    public String getFeedback()
+    String getFeedback()
     {
         return script.toString();
     }
@@ -88,45 +85,37 @@ public class MergeConflictChecker {
         echo("Successfully fetched " + originName);
     }
 
-    public void check() throws GitAPIException {
+    void check() throws GitAPIException, IOException {
         echo("Current branch is " + currentBranch);
 
         fetchRemote(git);
 
-        List<Ref> brchs = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.ALL)
-                .call();
-        for (Ref br : brchs) {
-            echo(br.getName());
+//        List<Ref> brchs = git.branchList()
+//                .setListMode(ListBranchCommand.ListMode.ALL)
+//                .call();
+//        for (Ref br : brchs) {
+//            echo(br.getName());
+//        }
+
+        for (String branch : toCheckBranches) {
+            MergeCommand mgCmd = git.merge();
+            ObjectId commitId = repository.resolve("refs/remotes/" + originName + "/" + branch);
+            if (commitId == null) {
+                echo("Branch " + branch + " not found");
+                continue;
+            }
+            mgCmd.include(commitId);
+            MergeResult res = mgCmd.call();
+            if (res.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
+                echo("Merge with branch " + branch + " is failed");
+            } else {
+                echo("Merge with branch " + branch + " is successful");
+            }
+
+            repository.writeMergeCommitMsg(null);
+            repository.writeMergeHeads(null);
+
+            Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
         }
-
-//            for (String branch : branches) {
-//                if (("refs/heads/" + branch).equals(currentBranch)) {
-//                    continue;
-//                }
-//                MergeCommand mgCmd = git.merge();
-
-//                ObjectId commitId = repository.resolve("refs/remotes/origin/" + branch);
-//                ObjectId commitId = repository.resolve("origin/" + branch);
-//                mgCmd.include(commitId);
-//                MergeResult res = mgCmd.call();
-//                if (res.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-////                    throw new RunBuildException("Merge conflict.");
-//                    result += "echo 'Merge with branch " + branch + "is failed'\n";
-//                } else {
-//                    result += "echo 'Merge with branch " + branch + "is successful'\n";
-//                }
-//
-//                repository.writeMergeCommitMsg(null);
-//                repository.writeMergeHeads(null);
-//
-//                Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
-
-            // mind http://stackoverflow.com/questions/29807016/abort-merge-using-jgit
-
-            //            result += "git merge origin/" + branch + "\n";
-            //            result += "git merge --abort\n";
-            //            result += "git reset --hard HEAD\n";
-//            }
     }
 }
