@@ -20,6 +20,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.jetbrains.annotations.NotNull;
@@ -77,10 +78,16 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
 
         try {
             // one remote
+            RefSpec refSpec = new RefSpec();
+            refSpec = refSpec.setForceUpdate(true);
+            // all branches
+            refSpec = refSpec.setSourceDestination("refs/heads/*", "refs/remotes/" + name + "/*");
+
             git.fetch()
                     .setRemote(name)
 //                   .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(user, "<password>"))
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(user, "12345678"))
+                    .setRefSpecs(refSpec)
                     .call();
             return echo("Successfully fetched " + name);
         } catch (TransportException ex)
