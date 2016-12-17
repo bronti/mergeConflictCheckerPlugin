@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -27,7 +28,7 @@ public class MergeConflictChecker {
 //    MergeConflictCheckerRunService runner;
     private StringBuilder script = new StringBuilder(100);
 
-    private final UsernamePasswordCredentialsProvider creds;
+    private final CredentialsProvider creds;
     private final String[] toCheckBranches;
     private final String currentBranch;
     private final URIish fetchUri;
@@ -40,7 +41,7 @@ public class MergeConflictChecker {
                          String branch,
                          String branches,
                          URIish uri_,
-                         UsernamePasswordCredentialsProvider creds_) throws IOException, RunBuildException {
+                         CredentialsProvider creds_) throws IOException, RunBuildException {
         script.append("#!/bin/bash\n\n");
         creds = creds_;
         toCheckBranches = branches.split("\\s+");
@@ -78,7 +79,7 @@ public class MergeConflictChecker {
 
         git.fetch()
                 .setRemote(originName)
-//                   .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
+//                .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
                 .setCredentialsProvider(creds)
                 .setRefSpecs(refSpec)
                 .call();

@@ -20,6 +20,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.ResolveMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -70,9 +71,11 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
 
         BuildRunnerContext context = getRunnerContext();
         Map<String, String> configParams = context.getConfigParameters();
-        String user = configParams.get("vcsroot.username");
-        UsernamePasswordCredentialsProvider credentials =
-                new UsernamePasswordCredentialsProvider(user, "12345678");
+//        String user = configParams.get("vcsroot.username");
+//        UsernamePasswordCredentialsProvider credentials =
+//                new UsernamePasswordCredentialsProvider(user, "12345678");
+        CredentialsProvider credentials =
+                UsernamePasswordCredentialsProvider.getDefault();
 
         String currBranch = configParams.get("vcsroot.branch");
         String fetchUrl = configParams.get("vcsroot.url");
