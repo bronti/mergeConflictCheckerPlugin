@@ -46,6 +46,7 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
 
     @Override
     public void beforeProcessStarted() throws RunBuildException {
+        // todo: check
     }
 
     @NotNull

@@ -23,6 +23,7 @@ import java.util.Map;
 /**
  * Created by bronti on 06.12.16.
  */
+
 public class MergeConflictChecker {
 
 //    MergeConflictCheckerRunService runner;
@@ -79,7 +80,6 @@ public class MergeConflictChecker {
 
         git.fetch()
                 .setRemote(originName)
-//                .setCredentialsProvider(UsernamePasswordCredentialsProvider.getDefault())
                 .setCredentialsProvider(creds)
                 .setRefSpecs(refSpec)
                 .call();
