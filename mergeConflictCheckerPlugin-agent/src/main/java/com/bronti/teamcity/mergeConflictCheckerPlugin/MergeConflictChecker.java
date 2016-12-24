@@ -42,7 +42,7 @@ public class MergeConflictChecker {
                          String branch,
                          String branches,
                          URIish uri_,
-                         CredentialsProvider creds_) throws IOException, RunBuildException {
+                         CredentialsProvider creds_) throws IOException {
         script.append("#!/bin/bash\n\n");
         creds = creds_;
         toCheckBranches = branches.split("\\s+");
@@ -54,11 +54,27 @@ public class MergeConflictChecker {
         git = new Git(repository);
     }
 
-    private void echo(String msg)
+    private enum TcMessageStatus {
+        NORMAL, WARNING, FAILURE, ERROR
+    }
+
+    private void tcMessage(String msg, TcMessageStatus status, String details)
     {
-        script.append("echo '");
+        script.append("echo \"##teamcity[message text='");
         script.append(msg);
-        script.append("'\n");
+        if (!details.equals("") && status == TcMessageStatus.ERROR)
+        {
+            script.append("'  errorDetails='");
+            script.append(details);
+        }
+        script.append("' status='");
+        script.append(status.name());
+        script.append("']\"\n");
+    }
+
+    private void tcMessage(String msg, TcMessageStatus status)
+    {
+        tcMessage(msg, status, "");
     }
 
     String getFeedback()
@@ -83,11 +99,11 @@ public class MergeConflictChecker {
                 .setCredentialsProvider(creds)
                 .setRefSpecs(refSpec)
                 .call();
-        echo("Successfully fetched " + originName);
+        // todo: injections
+        tcMessage("Successfully fetched " + originName, TcMessageStatus.NORMAL);
     }
 
     void check() throws GitAPIException, IOException {
-        echo("Current branch is " + currentBranch);
 
         fetchRemote(git);
 
@@ -102,15 +118,20 @@ public class MergeConflictChecker {
             MergeCommand mgCmd = git.merge();
             ObjectId commitId = repository.resolve("refs/remotes/" + originName + "/" + branch);
             if (commitId == null) {
-                echo("Branch " + branch + " not found");
+                // todo: injections
+                tcMessage("Branch |'" + branch + "|' not found", TcMessageStatus.ERROR);
                 continue;
             }
             mgCmd.include(commitId);
-            MergeResult res = mgCmd.call();
-            if (res.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)) {
-                echo("Merge with branch " + branch + " is failed");
+            MergeResult.MergeStatus resStatus = mgCmd.call().getMergeStatus();
+            if (resStatus.isSuccessful()) {
+                // todo: injections
+                String msg = "Merge with branch |'" + branch + "|' is successful. Status is " + resStatus.toString() + ".";
+                tcMessage(msg, TcMessageStatus.NORMAL);
             } else {
-                echo("Merge with branch " + branch + " is successful");
+                // todo: injections
+                String msg = "Merge with branch |'" + branch + "|' is failed. Status is " + resStatus.toString() + ".";
+                tcMessage(msg, TcMessageStatus.WARNING);
             }
 
             repository.writeMergeCommitMsg(null);
