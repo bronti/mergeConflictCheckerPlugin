@@ -63,6 +63,19 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
                 args);
     }
 
+    private File createTempLogFile() throws IOException {
+        File tmpDir = new File(getBuildTempDirectory(), "mcc_run_results");
+        boolean exists = tmpDir.exists();
+
+        if (!exists && !tmpDir.mkdir()) {
+            throw new IOException("Cannot create temporary directory for build.");
+        }
+        String fileName = "mcc_run_results";
+        File logFile = new File(tmpDir, fileName);
+        logFile.createNewFile();
+        return logFile;
+    }
+
     private String createScript() throws RunBuildException {
 
         Map<String, String> params = getRunnerParameters();
@@ -87,12 +100,20 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
             File coDir = getCheckoutDirectory();
             File repoDir = new File(coDir.getPath() + "/.git");
 
+            MergeConflictCheckerRunResultsLogger logger;
+            try {
+                logger = new MergeConflictCheckerRunResultsLogger(createTempLogFile());
+            }
+            catch (IOException ex) {
+                throw new RunBuildException("Can not create temporary log file", ex.getCause());
+            }
+
             MergeConflictChecker checker =
-                    new MergeConflictChecker(repoDir, currBranch, allBranches, uri, credentials);
+                    new MergeConflictChecker(repoDir, currBranch, allBranches, uri, credentials, logger);
             checker.check();
             return checker.getFeedback();
         }
-        catch (URISyntaxException | IOException |GitAPIException ex) {
+        catch (URISyntaxException | IOException | GitAPIException ex) {
             throw new RunBuildException(ex.getMessage(), ex.getCause());
         }
     }

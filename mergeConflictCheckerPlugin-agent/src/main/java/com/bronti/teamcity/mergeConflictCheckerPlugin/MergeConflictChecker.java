@@ -24,6 +24,7 @@ import java.util.Map;
  * Created by bronti on 06.12.16.
  */
 
+//todo: move to separate project
 public class MergeConflictChecker {
 
 //    MergeConflictCheckerRunService runner;
@@ -34,6 +35,7 @@ public class MergeConflictChecker {
     private final String currentBranch;
     private final URIish fetchUri;
     private final String originName = "origin";
+    private final MergeConflictCheckerRunResultsLogger logger;
 
     private Repository repository;
     private Git git;
@@ -41,17 +43,20 @@ public class MergeConflictChecker {
     MergeConflictChecker(File repoDir,
                          String branch,
                          String branches,
-                         URIish uri_,
-                         CredentialsProvider creds_) throws IOException {
+                         URIish uri,
+                         CredentialsProvider creds,
+                         MergeConflictCheckerRunResultsLogger logger) throws IOException {
         script.append("#!/bin/bash\n\n");
-        creds = creds_;
+        this.creds = creds;
+        //todo: check valid (?)
         toCheckBranches = branches.split("\\s+");
-        fetchUri = uri_;
+        fetchUri = uri;
         currentBranch = branch;
 
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         repository = builder.setGitDir(repoDir).readEnvironment().findGitDir().build();
         git = new Git(repository);
+        this.logger = logger;
     }
 
     private enum TcMessageStatus {
@@ -95,10 +100,11 @@ public class MergeConflictChecker {
         refSpec = refSpec.setSourceDestination("refs/heads/*", "refs/remotes/" + originName + "/*");
 
         git.fetch()
-                .setRemote(originName)
-                .setCredentialsProvider(creds)
-                .setRefSpecs(refSpec)
-                .call();
+           .setRemote(originName)
+           .setCredentialsProvider(creds)
+           .setRefSpecs(refSpec)
+           .call();
+
         // todo: injections
         tcMessage("Successfully fetched " + originName, TcMessageStatus.NORMAL);
     }
@@ -120,6 +126,7 @@ public class MergeConflictChecker {
             if (commitId == null) {
                 // todo: injections
                 tcMessage("Branch |'" + branch + "|' not found", TcMessageStatus.ERROR);
+                logger.logNonexistentBranch(branch);
                 continue;
             }
             mgCmd.include(commitId);
@@ -133,11 +140,13 @@ public class MergeConflictChecker {
                 String msg = "Merge with branch |'" + branch + "|' is failed. Status is " + resStatus.toString() + ".";
                 tcMessage(msg, TcMessageStatus.WARNING);
             }
+            logger.logMergeResult(branch, resStatus.isSuccessful(), resStatus.toString());
 
             repository.writeMergeCommitMsg(null);
             repository.writeMergeHeads(null);
 
             Git.wrap(repository).reset().setMode(ResetCommand.ResetType.HARD).call();
         }
+        logger.flushLog();
     }
 }
