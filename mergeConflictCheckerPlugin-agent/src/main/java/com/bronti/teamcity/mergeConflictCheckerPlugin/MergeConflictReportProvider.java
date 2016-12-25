@@ -16,28 +16,28 @@ import java.util.List;
  */
 public class MergeConflictReportProvider {
 
-    private class MergeResult {
-        public final String branch;
-        public final boolean isSuccessful;
-        public final boolean exists;
-        public final String state;
+//    private class OneMergeResult {
+//        public final String branch;
+//        public final boolean isSuccessful;
+//        public final boolean exists;
+//        public final String state;
+//
+//        OneMergeResult(String branch, boolean isSuccessful, String state) {
+//            this.branch = branch;
+//            this.isSuccessful = isSuccessful;
+//            this.exists = true;
+//            this.state = state;
+//        }
+//
+//        OneMergeResult(String branch) {
+//            this.branch = branch;
+//            this.isSuccessful = false;
+//            this.exists = false;
+//            this.state = "";
+//        }
+//    }
 
-        MergeResult(String branch, boolean isSuccessful, String state) {
-            this.branch = branch;
-            this.isSuccessful = isSuccessful;
-            this.exists = true;
-            this.state = state;
-        }
-
-        MergeResult(String branch) {
-            this.branch = branch;
-            this.isSuccessful = false;
-            this.exists = false;
-            this.state = "";
-        }
-    }
-
-    private List<MergeResult> results = new ArrayList<>();
+    private List<OneMergeResult> results = new ArrayList<>();
     private File logFile;
     private ArtifactsWatcher artifactsWatcher;
 
@@ -49,12 +49,12 @@ public class MergeConflictReportProvider {
 
     void logMergeResult(String branch, boolean isSuccessful, String state)
     {
-        results.add(new MergeResult(branch, isSuccessful, state));
+        results.add(new OneMergeResult(branch, isSuccessful, state));
     }
 
     void logNonexistentBranch(String branch)
     {
-        results.add(new MergeResult(branch));
+        results.add(new OneMergeResult(branch));
     }
 
     void flushLog() throws IOException {

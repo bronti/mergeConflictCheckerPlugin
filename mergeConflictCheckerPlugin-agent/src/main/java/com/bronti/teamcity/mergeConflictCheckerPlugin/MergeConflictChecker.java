@@ -1,6 +1,5 @@
 package com.bronti.teamcity.mergeConflictCheckerPlugin;
 
-import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;

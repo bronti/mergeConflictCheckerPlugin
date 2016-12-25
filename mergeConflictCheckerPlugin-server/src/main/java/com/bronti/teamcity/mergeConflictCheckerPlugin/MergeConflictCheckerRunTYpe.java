@@ -15,8 +15,6 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 
 import org.jetbrains.annotations.NotNull;
 
-//import ee.elinyo.teamcity.plugins.ansible.common.AnsibleRunConfig;
-
 
 /**
  * Created by bronti on 15.11.16.
@@ -75,6 +73,7 @@ public class MergeConflictCheckerRunTYpe extends RunType {
         return new PropertiesProcessor() {
             public Collection<InvalidProperty> process(final Map<String, String> properties) {
                 List<InvalidProperty> errors = new ArrayList<InvalidProperty>();
+                //todo: check branch list
                 return errors;
             }
         };

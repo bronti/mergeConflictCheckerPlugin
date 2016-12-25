@@ -3,7 +3,6 @@ package com.bronti.teamcity.mergeConflictCheckerPlugin;
 /**
  * Created by bronti on 15.11.16.
  */
-//import ee.elinyo.teamcity.plugins.ansible.common.AnsibleCommand;
 
 import java.util.Arrays;
 import java.util.Collection;

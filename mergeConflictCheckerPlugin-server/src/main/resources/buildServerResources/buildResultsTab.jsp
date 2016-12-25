@@ -1,9 +1,13 @@
-<%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="forms" tagdir="/WEB-INF/tags/forms" %>
-<%@ taglib prefix="l" tagdir="/WEB-INF/tags/layout" %>
-<%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
+<jsp:useBean id="buildData" type="jetbrains.buildServer.serverSide.SBuild" scope="request"/>
+<script type="text/javascript">
+    var MergeConflictCheckerRunReport = {
+        buildId: '${buildData.buildId}'
+    };
+</script>
+
+<div data-ng-app="mccr-report" data-ng-include="'/plugins/mergeConflictCheckerPlugin/html/report-ng.tpl'">
+</div>
 
 <div>
-  My results.
+    Ololo.
 </div>

@@ -8,8 +8,8 @@ public class MergeConflictCheckerConstants {
 
     public static final String BRANCHES = "branches";
 
-    public static final String ARTIFACTS_DIR = ".teamcity/mcc_report";
+    public static final String ARTIFACTS_DIR = ".teamcity/mccr-report";
 
-    public static final String JSON_REPORT_FILENAME = "mcc_report.json";
+    public static final String JSON_REPORT_FILENAME = "mccr-report.json";
 
 }
