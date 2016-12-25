@@ -1,27 +1,14 @@
 package com.bronti.teamcity.mergeConflictCheckerPlugin;
 
 import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.BuildParametersMap;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import jetbrains.buildServer.agent.runner.BuildServiceAdapter;
 import jetbrains.buildServer.agent.runner.ProgramCommandLine;
 import jetbrains.buildServer.agent.runner.SimpleProgramCommandLine;
 import jetbrains.buildServer.util.FileUtil;
-import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidConfigurationException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.merge.ResolveMerger;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +57,7 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
         if (!exists && !tmpDir.mkdir()) {
             throw new IOException("Cannot create temporary directory for build.");
         }
-        String fileName = "mcc_run_results";
+        String fileName = MergeConflictCheckerConstants.JSON_REPORT_FILENAME;
         File logFile = new File(tmpDir, fileName);
         logFile.createNewFile();
         return logFile;
@@ -100,9 +87,9 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
             File coDir = getCheckoutDirectory();
             File repoDir = new File(coDir.getPath() + "/.git");
 
-            MergeConflictCheckerRunResultsLogger logger;
+            MergeConflictReportProvider logger;
             try {
-                logger = new MergeConflictCheckerRunResultsLogger(createTempLogFile());
+                logger = new MergeConflictReportProvider(createTempLogFile(), artifactsWatcher);
             }
             catch (IOException ex) {
                 throw new RunBuildException("Can not create temporary log file", ex.getCause());

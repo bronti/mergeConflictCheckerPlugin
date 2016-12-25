@@ -1,24 +1,17 @@
 package com.bronti.teamcity.mergeConflictCheckerPlugin;
 
-import jetbrains.buildServer.RunBuildException;
-import jetbrains.buildServer.agent.BuildRunnerContext;
+import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by bronti on 06.12.16.
@@ -35,7 +28,7 @@ public class MergeConflictChecker {
     private final String currentBranch;
     private final URIish fetchUri;
     private final String originName = "origin";
-    private final MergeConflictCheckerRunResultsLogger logger;
+    private final MergeConflictReportProvider logger;
 
     private Repository repository;
     private Git git;
@@ -45,7 +38,7 @@ public class MergeConflictChecker {
                          String branches,
                          URIish uri,
                          CredentialsProvider creds,
-                         MergeConflictCheckerRunResultsLogger logger) throws IOException {
+                         MergeConflictReportProvider logger) throws IOException {
         script.append("#!/bin/bash\n\n");
         this.creds = creds;
         //todo: check valid (?)
