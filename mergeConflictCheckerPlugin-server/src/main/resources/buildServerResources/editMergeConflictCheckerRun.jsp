@@ -6,17 +6,6 @@
 <jsp:useBean id="bean" class="com.bronti.teamcity.mergeConflictCheckerPlugin.MergeConflictCheckerRunConfigBean"/>
 <jsp:useBean id="propertiesBean" scope="request" type="jetbrains.buildServer.controllers.BasePropertiesBean"/>
 
-<tr>
-  <th><label for="${bean.myOption}">My option (edit):</label></th>
-  <td>
-    <props:selectProperty name="${bean.myOption}" id="mcc_my_option" className="mediumField">
-      <props:option value="${bean.firstMyValue}">First</props:option>
-      <props:option value="${bean.secondMyValue}">Second</props:option>
-    </props:selectProperty>
-    <span class="smallNote">Just an option.</span>
-  </td>
-</tr>
-
 <tr id="mcc_branches">
   <th><label for="${bean.branches}">Branches:</label></th>
   <td>
