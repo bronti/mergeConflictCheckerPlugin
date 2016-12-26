@@ -59,11 +59,12 @@ public class MergeConflictReportProvider {
 
     void flushLog() throws IOException {
         JsonFactory jf = new MappingJsonFactory();
-        JsonGenerator jg = jf.createGenerator(logFile, JsonEncoding.UTF8);
-        jg.writeStartObject();
-        jg.writeFieldName("merge_results");
-        jg.writeObject(results);
-        jg.writeEndObject();
+        try (JsonGenerator jg = jf.createGenerator(logFile, JsonEncoding.UTF8)) {
+            jg.writeStartObject();
+            jg.writeFieldName("merge_results");
+            jg.writeObject(results);
+            jg.writeEndObject();
+        }
         artifactsWatcher.addNewArtifactsPath(logFile.getAbsolutePath() + "=>" + MergeConflictCheckerConstants.ARTIFACTS_DIR);
     }
 
