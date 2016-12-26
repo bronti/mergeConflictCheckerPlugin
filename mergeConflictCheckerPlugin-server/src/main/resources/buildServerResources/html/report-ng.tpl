@@ -1,7 +1,7 @@
 <div data-ng-controller="mccrRootCtrl" class="mccr-report">
 <div data-ng-hide="loaded">
-    Loading MCC Run report...  {{ str }}
+    <span class="icon-refresh icon-spin"></span>&nbsp;Loading report...
 </div>
 <div data-ng-show="loaded">
-    MCC report here. {{ str }}
+    MCC report here!
 </div>

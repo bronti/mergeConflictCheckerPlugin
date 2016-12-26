@@ -7,7 +7,3 @@
 
 <div data-ng-app="mccr-report" data-ng-include="'/plugins/mergeConflictCheckerPlugin/html/report-ng.tpl'">
 </div>
-
-<div>
-    Ololo.
-</div>

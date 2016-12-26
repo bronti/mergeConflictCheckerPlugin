@@ -38,33 +38,13 @@ public class MergeConflictCheckerReportTab extends ViewLogTab {
     }
 
     private String getTitle() {
-        return "Merge Conflict Checker Log";
+        return "Merge Conflict Checker Report";
     }
 
     @Override
     protected void fillModel(@NotNull Map<String, Object> model,
                              @NotNull HttpServletRequest request,
                              @NotNull SBuild build) {
-//        String artifactPath = MergeConflictCheckerConstants.ARTIFACTS_DIR + MergeConflictCheckerConstants.JSON_REPORT_FILENAME;
-//        BuildArtifact report = build.getArtifacts(BuildArtifactsViewMode.VIEW_HIDDEN_ONLY).getArtifact(artifactPath);
-//        try {
-//            InputStream reportStream = report.getInputStream();
-//            JsonFactory factory = new JsonFactory();
-//            JsonParser parser  = factory.createParser(reportStream);
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, OneMergeResult.class);
-//            List<OneMergeResult> results = objectMapper.readValue(parser, type);
-//
-//
-//            super.fillModel(model, request);
-////            model.put("resultsList", results);
-//            model.put("checkString", "Hi!");
-//        }
-//        catch (IOException ex) {
-//            // todo: do something
-//            throw new RuntimeException();
-//        }
-//        model.put("checkString", "Hi!");
     }
 
     @Override
