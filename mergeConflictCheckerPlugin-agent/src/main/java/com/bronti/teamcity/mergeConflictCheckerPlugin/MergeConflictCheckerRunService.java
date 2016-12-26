@@ -51,14 +51,7 @@ public class MergeConflictCheckerRunService extends BuildServiceAdapter {
     }
 
     private File createTempLogFile() throws IOException {
-        File tmpDir = new File(getBuildTempDirectory(), "mcc_run_results");
-        boolean exists = tmpDir.exists();
-
-        if (!exists && !tmpDir.mkdir()) {
-            throw new IOException("Cannot create temporary directory for build.");
-        }
-        String fileName = MergeConflictCheckerConstants.JSON_REPORT_FILENAME;
-        File logFile = new File(tmpDir, fileName);
+        File logFile = new File(getBuildTempDirectory(), MergeConflictCheckerConstants.JSON_REPORT_FILENAME);
         logFile.createNewFile();
         return logFile;
     }
